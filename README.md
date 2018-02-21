@@ -30,6 +30,7 @@ Some of the benefits of using Tweep vs Twitter API:
 - `--limit` Number of Tweets to pull (Increments of 20).
 - `--count` Display number Tweets scraped at the end of session.
 - `--stats` Show number of replies, retweets, and likes.
+- `--rawpic` Display the exact image URL.
 
 ## Low-Hanging Fruit
 The `--fruit` feature will display Tweets that *might* contain sensitive info such as:
