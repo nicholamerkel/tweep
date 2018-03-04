@@ -10,6 +10,7 @@ import datetime
 import json
 import re
 import sys
+import dataset
 
 async def getUrl(init):
     '''
@@ -183,6 +184,18 @@ async def outTweet(tweet):
             with open(arg.o, "a", newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter="|")
                 writer.writerow(dat)
+        elif arg.db:
+            # Write all variables scraped to a SQLite database
+            db = dataset.connect('sqlite:///' + arg.o)
+
+            if arg.users:
+                dat = {'query': arg.s, 'username': username}
+                db['users'].insert(dat)
+            else:
+                dat = {'tweetid': tweetid, 'date': date, 'time': time, 'timezone': timezone,
+                       'username': username, 'text': text, 'replies': replies, 'retweets': retweets,
+                       'likes': likes, 'hashtags': hashtags}
+                db['tweets'].insert(dat)
         else:
             # Writes or appends to a file.
             print(output, file=open(arg.o, "a"))
@@ -280,6 +293,7 @@ if __name__ == "__main__":
     ap.add_argument("--verified", help="Display Tweets only from verified users (Use with -s).", action="store_true")
     ap.add_argument("--users", help="Display users only (Use with -s).", action="store_true")
     ap.add_argument("--csv", help="Write as .csv file.", action="store_true")
+    ap.add_argument("--db", help="Write as a database.", action="store_true")
     ap.add_argument("--hashtags", help="Output hashtags in seperate column.", action="store_true")
     ap.add_argument("--userid", help="Twitter user id")
     ap.add_argument("--limit", help="Number of Tweets to pull (Increments of 20).")
