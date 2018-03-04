@@ -27,6 +27,7 @@ Some of the benefits of using Tweep vs Twitter API:
 - `--verified` Display Tweets only from verified users (Use with `-s`).
 - `--users` Display users only (Use with `-s`).
 - `--csv` Write as a .csv file.
+- `--db` Write as a database.
 - `--hashtags` Extract hashtags.
 - `--userid` Search from Twitter user's ID.
 - `--limit` Number of Tweets to pull (Increments of 20).
@@ -50,6 +51,7 @@ A few simple examples to help you understand the basics:
 - `python3 tweep.py -u username --since 2015-12-20` - Collect Tweets that were tweeted since 2015-12-20.
 - `python3 tweep.py -u username -o file.txt` - Scrape Tweets and save to file.txt.
 - `python3 tweep.py -u username -o file.csv --csv` - Scrape Tweets and save as a csv file.
+- `python3 tweep.py -u username -o file.db --db` - Scrape Tweets and save as a database.
 - `python3 tweep.py -u username --fruit` - Show Tweets with low-hanging fruit.
 - `python3 tweep.py -s "Donald Trump" --verified --users` - List verified users that Tweet about Donald Trump.
 - `python3 tweep.py -g="48.880048,2.385939,1km" -o file.csv --csv` - Scrape Tweets from a radius of 1km around a place in Paris and export them to a csv file.
