@@ -1,0 +1,1 @@
+python3 tweep.py --limit 100 --tweets -s coronavirus -o scraped/coronavirus.csv --csv

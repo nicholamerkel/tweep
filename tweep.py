@@ -37,6 +37,7 @@ async def getUrl(init):
     if arg.s != None:
         arg.s = arg.s.replace(" ", "%20").replace("#", "%23")
         url+= "%20{0.s}".format(arg)
+        print("---------arg: ", arg)
     if arg.year != None:
         url+= "%20until%3A{0.year}-1-1".format(arg)
     if arg.since != None:
@@ -49,6 +50,7 @@ async def getUrl(init):
     if arg.verified:
         url+= "%20filter%3Averified"
 
+    url = "https://twitter.com/i/events/1240677133971644419"
     return url
 
 async def fetch(session, url):
