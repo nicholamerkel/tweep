@@ -15,7 +15,7 @@ import dataset
 async def getUrl(init):
     '''
     URL Descision:
-    Tweep utilizes positions of Tweet's from Twitter's search feature to 
+    Tweep utilizes positions of Tweet's from Twitter's search feature to
     iterate through a user's Twitter feed. This section decides whether
     this is the first URL request or not and develops the URL based on the
     args given.
@@ -100,7 +100,7 @@ async def getFeed(init):
         if init == -1:
             feed, init = await initial(response)
         else:
-            feed, init = await cont(response) 
+            feed, init = await cont(response)
     except:
         # Tweep will realize that it's done scraping.
         pass
@@ -110,7 +110,7 @@ async def getFeed(init):
 async def outTweet(tweet):
     '''
     Parsing Section:
-    This function will create the desired output string and 
+    This function will create the desired output string and
     write it to a file or csv if specified.
 
     Returns output.
@@ -160,7 +160,8 @@ async def outTweet(tweet):
     if arg.users:
         output = username
     elif arg.tweets:
-        output = tweets
+        output = text
+        # output = tweets
     else:
         '''
         The standard output is how I like it, although
@@ -267,7 +268,7 @@ def Error(error, message):
     sys.exit(0)
 
 def check():
-    # Performs main argument checks so nothing unintended happens. 
+    # Performs main argument checks so nothing unintended happens.
     if arg.u is not None:
         if arg.users:
             Error("Contradicting Args", "Please use --users in combination with -s.")
