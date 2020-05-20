@@ -23,10 +23,11 @@ async def getUrl(init):
     Returns complete URL.
     '''
     if init == -1:
-        url = "https://twitter.com/search?f=tweets&vertical=default&lang=en&q="
+        url = "https://twitter.com/search?vertical=default&lang=en&q="
     else:
-        url = "https://twitter.com/i/search/timeline?f=tweets&vertical=default"
-        url+= "&lang=en&include_available_features=1&include_entities=1&reset_"
+        print(f"-----init: {init}------")
+        url = "https://twitter.com/i/search/timeline?"
+        url+= "vertical=default&lang=en&include_available_features=1&include_entities=1&reset_"
         url+= "error_state=false&src=typd&max_position={}&q=".format(init)
 
     if arg.u != None:
@@ -37,7 +38,6 @@ async def getUrl(init):
     if arg.s != None:
         arg.s = arg.s.replace(" ", "%20").replace("#", "%23")
         url+= "%20{0.s}".format(arg)
-        print("---------arg: ", arg)
     if arg.year != None:
         url+= "%20until%3A{0.year}-1-1".format(arg)
     if arg.since != None:
@@ -49,8 +49,12 @@ async def getUrl(init):
         url+= "%20OR%20keybase"
     if arg.verified:
         url+= "%20filter%3Averified"
+    if arg.latest:
+        url+= "&f=tweets"
+    # url = "https://twitter.com/search?q=coronavirus&src=typed_query"
+    # url = "https://twitter.com/i/events/1240677133971644419"
 
-    url = "https://twitter.com/i/events/1240677133971644419"
+    print("-----url: ", url)
     return url
 
 async def fetch(session, url):
@@ -66,7 +70,9 @@ async def initial(response):
     Initial response parsing and collecting the position ID
     '''
     soup = BeautifulSoup(response, "html.parser")
-    feed = soup.find_all("li", "js-stream-item")
+    # feed = soup.find_all("li", "js-stream-item")
+    feed = soup.find_all("li", attrs={"data-item-id":True})
+
     init = "TWEET-{}-{}".format(feed[-1]["data-item-id"], feed[0]["data-item-id"])
 
     return feed, init
@@ -102,8 +108,10 @@ async def getFeed(init):
         if init == -1:
             feed, init = await initial(response)
         else:
+            print("------cont called-------")
             feed, init = await cont(response)
-    except:
+    except Exception as e:
+        print("-------except--------: ", e)
         # Tweep will realize that it's done scraping.
         pass
 
@@ -117,7 +125,13 @@ async def outTweet(tweet):
 
     Returns output.
     '''
-    tweetid = tweet["data-item-id"]
+    try:
+        tweetid = tweet["data-item-id"]
+        # print("-------GOOD TWEET: ", tweet)
+    except Exception as e:
+        print("error: ", e)
+        # print(f"-----TWEET: {tweet}")
+
     # Formatting the date & time stamps just how I like it.
     datestamp = tweet.find("a", "tweet-timestamp")["title"].rpartition(" - ")[-1]
     d = datetime.datetime.strptime(datestamp, "%d %b %Y")
@@ -302,6 +316,8 @@ if __name__ == "__main__":
     ap.add_argument("--limit", help="Number of Tweets to pull (Increments of 20).")
     ap.add_argument("--count", help="Display number Tweets scraped at the end of session.", action="store_true")
     ap.add_argument("--stats", help="Show number of replies, retweets, and likes", action="store_true")
+    # adding arg. for scrape top tweets over latest
+    ap.add_argument("--latest", help="Scrape latest tweets. If omitted, will scrape top tweets", action="store_true")
     arg = ap.parse_args()
 
     check()
