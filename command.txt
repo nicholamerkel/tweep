@@ -1,1 +1,1 @@
-python3 tweep.py --count --limit 100 --tweets -g "38.9072,-77.0369,30km" -o scraped/covid.txt
+python3 tweep.py --count --limit 100 --tweets -g "38.9072,-77.0369,30km" -s coronavirus -o scraped/coronavirus.txt
