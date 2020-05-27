@@ -23,9 +23,8 @@ async def getUrl(init):
     Returns complete URL.
     '''
     if init == -1:
-        url = "https://twitter.com/search?vertical=default&lang=en&q="
+        url = "https://twitter.com/search?vertical=default&lang=en&src=typd&q="
     else:
-        print(f"-----init: {init}------")
         url = "https://twitter.com/i/search/timeline?"
         url+= "vertical=default&lang=en&include_available_features=1&include_entities=1&reset_"
         url+= "error_state=false&src=typd&max_position={}&q=".format(init)
@@ -51,10 +50,8 @@ async def getUrl(init):
         url+= "%20filter%3Averified"
     if arg.latest:
         url+= "&f=tweets"
-    # url = "https://twitter.com/search?q=coronavirus&src=typed_query"
-    # url = "https://twitter.com/i/events/1240677133971644419"
 
-    print("-----url: ", url)
+    print(f"\n------------------------------------\nurl: {url}\n------------------------------------")
     return url
 
 async def fetch(session, url):
@@ -74,6 +71,7 @@ async def initial(response):
     feed = soup.find_all("li", attrs={"data-item-id":True})
 
     init = "TWEET-{}-{}".format(feed[-1]["data-item-id"], feed[0]["data-item-id"])
+    # init = "TWEET-{}".format(feed[-1]["data-item-id"])
 
     return feed, init
 
@@ -84,10 +82,16 @@ async def cont(response):
     json_response = json.loads(response)
     html = json_response["items_html"]
     soup = BeautifulSoup(html, "html.parser")
-    feed = soup.find_all("li", "js-stream-item")
-    split = json_response["min_position"].split("-")
-    split[1] = feed[-1]["data-item-id"]
-    init = "-".join(split)
+    # feed = soup.find_all("li", "js-stream-item")
+    feed = soup.find_all("li", attrs={"data-item-id":True})
+
+    # split = json_response["min_position"].split("-")
+    # split[1] = feed[-1]["data-item-id"]
+    # init = "-".join(split)
+
+    # init = "TWEET-{}-{}".format(feed[-1]["data-item-id"], feed[0]["data-item-id"])
+    init = json_response["min_position"]
+
 
     return feed, init
 
@@ -108,10 +112,9 @@ async def getFeed(init):
         if init == -1:
             feed, init = await initial(response)
         else:
-            print("------cont called-------")
             feed, init = await cont(response)
+
     except Exception as e:
-        print("-------except--------: ", e)
         # Tweep will realize that it's done scraping.
         pass
 
@@ -125,12 +128,8 @@ async def outTweet(tweet):
 
     Returns output.
     '''
-    try:
-        tweetid = tweet["data-item-id"]
-        # print("-------GOOD TWEET: ", tweet)
-    except Exception as e:
-        print("error: ", e)
-        # print(f"-----TWEET: {tweet}")
+    tweetid = tweet["data-item-id"]
+    # print(f"\n******TWEET ID: {tweetid}******")
 
     # Formatting the date & time stamps just how I like it.
     datestamp = tweet.find("a", "tweet-timestamp")["title"].rpartition(" - ")[-1]
@@ -144,6 +143,11 @@ async def outTweet(tweet):
     timezone = strftime("%Z", gmtime())
     # The context of the Tweet compressed into a single line.
     text = tweet.find("p", "tweet-text").text.replace("\n", "").replace("http", " http").replace("pic.twitter", " pic.twitter")
+    cleaned_text = text
+    cleaned_text = re.sub(r'https?:\/\/\S+', '', cleaned_text) # remove links
+    cleaned_text = re.sub(r'pic\.twitter\S+', '', cleaned_text) # remove pictures
+
+
     # Regex for gathering hashtags
     hashtags = ",".join(re.findall(r'(?i)\#\w+', text, flags=re.UNICODE))
     replies = tweet.find("span", "ProfileTweet-action--reply u-hiddenVisually").find("span")["data-tweet-stat-count"]
@@ -154,7 +158,7 @@ async def outTweet(tweet):
     It sometimes gets slow with Tweets that contain
     40+ mentioned people.. rather than just appending
     the whole list to the Tweet, it goes through each
-    one to make sure there arn't any duplicates.
+    one to make sure there aren't any duplicates.
     '''
     try:
         mentions = tweet.find("div", "js-original-tweet")["data-mentions"].split(" ")
@@ -176,7 +180,7 @@ async def outTweet(tweet):
     if arg.users:
         output = username
     elif arg.tweets:
-        output = text
+        output = cleaned_text
         # output = tweets
     else:
         '''
@@ -193,7 +197,6 @@ async def outTweet(tweet):
             output+= " | {} replies {} retweets {} likes".format(replies, retweets, likes)
 
     # Output section
-
     if arg.o != None:
         if arg.csv:
             # Write all variables scraped to CSV
@@ -238,7 +241,6 @@ async def getTweets(init):
         if copyright is None:
             count +=1
             print(await outTweet(tweet))
-
     return tweets, init, count
 
 async def getUsername():
@@ -273,7 +275,8 @@ async def main():
         else:
             break
         # Control when we want to stop scraping.
-        if arg.limit is not None and num <= int(arg.limit):
+        print(f"-------num: {num}, limit: {arg.limit}-------")
+        if arg.limit is not None and num >= int(arg.limit):
             break
     if arg.count:
         print("Finished: Successfully collected {} Tweets.".format(num))
@@ -316,6 +319,7 @@ if __name__ == "__main__":
     ap.add_argument("--limit", help="Number of Tweets to pull (Increments of 20).")
     ap.add_argument("--count", help="Display number Tweets scraped at the end of session.", action="store_true")
     ap.add_argument("--stats", help="Show number of replies, retweets, and likes", action="store_true")
+
     # adding arg. for scrape top tweets over latest
     ap.add_argument("--latest", help="Scrape latest tweets. If omitted, will scrape top tweets", action="store_true")
     arg = ap.parse_args()
